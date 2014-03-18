@@ -481,24 +481,6 @@ class PHP_DocBlockGenerator_Block
         // resets the parameters types cache
         $this->type->resetCache('param');
         // /
-        // determines the function access level
-        // /
-        if (isset($this->tokens->id['access'])) {
-            // the visibility property is set
-            $access = $this->tokens->id['access'][1];
-        } else if (isset($this->tokens->id[T_STATIC])) {
-            // the static property is set, defaults the visibility to public
-            $access = 'public';
-        } else if ($this->tokens->inClass) {
-            // no visibility nor static property is set but the function is in a class: assuming this is PHP 4
-            // extracts the function/method name
-            $name = $functName['value'];
-            // the name is prefixed with '_', meaning private
-            $access = ($name{0} == '_' and $name{1} != '_')? 'private' : 'public';
-        }
-        // adds the access tag into the DocBlock
-        isset($access) and $block[] = "@access $access";
-        // /
         // processes the throw statements
         // /
         foreach($functTokens as $tid => $token) {
@@ -655,20 +637,12 @@ class PHP_DocBlockGenerator_Block
             // a PHP4 variable, extracts the variable name
 			// capture the visibility: name prefixed with '_' means private
             $name = $var['value'];
-            $access = ($name{1} == '_' and $name{2} != '_')? 'private' : 'public';
-        } else if (isset($this->tokens->id['access'])) {
-            // the visibility property is set, captures the visibility
-            $access = $this->tokens->id['access'][1];
-        } else if (isset($this->tokens->id[T_STATIC])) {
-            // the static property is set, defaults the visibility to "public"
-            $access = 'public';
         }
         // sets the variable scope, guesses the variable type
         $scope = isset($this->tokens->id[T_STATIC])? 'static' : 'dynamic';
         $type = $this->type->guessVar($this->classTokens, $var, $scope, 'var');
-        // adds the type, access, and static tags into the DocBlock
+        // adds the type and static tags into the DocBlock
         $block[] = "@var $type";
-        $block[] = "@access $access";
         isset($this->tokens->id[T_STATIC]) and $block[] = '@static';
         // builds the DocBlock before any of the static/public/private/var keywords
         isset($this->tokens->id[T_VAR]) and $id[] = $this->tokens->id[T_VAR];
